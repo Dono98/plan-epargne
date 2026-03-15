@@ -1,7 +1,7 @@
 {
   "name": "Plan 50K€",
   "short_name": "Plan 50K",
-  "description": "Mon plan epargne personnel — Objectif 50 000 € en 3 ans",
+  "description": "Mon plan epargne personnel — Objectif 50 000 euros en 3 ans",
   "start_url": "https://dono98.github.io/plan-epargne/" 
   "scope": "/plan-epargne/",
   "display": "standalone",
