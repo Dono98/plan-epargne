@@ -1084,6 +1084,163 @@ renderC();
 updT();
 renderCKL();
 
+// === NOTIFICATIONS HEBDOMADAIRES ===
+function toggleNotif() {
+  if (!('Notification' in window)) {
+    alert('Ton navigateur ne supporte pas les notifications. Essaie d\'ouvrir l\'app depuis l\'écran d\'accueil.');
+    return;
+  }
+  const active = ls('notif_active', false);
+  if (active) {
+    // Désactiver
+    lss('notif_active', false);
+    updateNotifBtn(false);
+    showNotifMsg('🔕 Rappels désactivés.');
+  } else {
+    // Activer — demander permission
+    if (Notification.permission === 'granted') {
+      enableNotif();
+    } else if (Notification.permission === 'denied') {
+      alert('Tu as bloqué les notifications.\n\nPour les activer :\nParamètres du téléphone → Applications → Brave → Notifications → Autoriser');
+    } else {
+      Notification.requestPermission().then(perm => {
+        if (perm === 'granted') {
+          enableNotif();
+        } else {
+          alert('Permission refusée. Active les notifications dans les paramètres de Brave.');
+        }
+      });
+    }
+  }
+}
+
+function enableNotif() {
+  lss('notif_active', true);
+  lss('notif_last_invest', Date.now());
+  lss('notif_last_reminder', 0);
+  updateNotifBtn(true);
+  document.getElementById('notif-banner').style.display = 'block';
+
+  // Notification de confirmation immédiate
+  try {
+    new Notification('PLAN-50K 💰 Rappels activés !', {
+      body: 'Tu seras rappelé chaque dimanche si tu n\'as pas investi.',
+      icon: 'icon-512.png',
+      badge: 'icon-512.png',
+      tag: 'activation'
+    });
+  } catch(e) {
+    // Notification via SW si direct échoue
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(sw => {
+        sw.showNotification('PLAN-50K 💰 Rappels activés !', {
+          body: 'Tu seras rappelé chaque dimanche si tu n\'as pas investi.',
+          icon: 'icon-512.png',
+          badge: 'icon-512.png',
+          tag: 'activation'
+        });
+      });
+    }
+  }
+
+  // Lancer la vérification hebdomadaire
+  startWeeklyCheck();
+}
+
+function updateNotifBtn(active) {
+  const btn = document.getElementById('notif-btn');
+  const icon = document.getElementById('notif-icon');
+  if (!btn || !icon) return;
+  if (active) {
+    icon.textContent = '🔔';
+    btn.style.borderColor = 'rgba(0,229,160,0.4)';
+    btn.style.color = 'var(--green)';
+    btn.title = 'Rappels activés — cliquer pour désactiver';
+  } else {
+    icon.textContent = '🔕';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--muted2)';
+    btn.title = 'Activer les rappels hebdomadaires';
+  }
+}
+
+function showNotifMsg(msg) {
+  const banner = document.getElementById('notif-banner');
+  if (banner) {
+    const txt = banner.querySelector('div');
+    if (txt) txt.innerHTML = `<strong style="color:var(--green);">${msg}</strong>`;
+    banner.style.display = 'block';
+    setTimeout(() => banner.style.display = 'none', 4000);
+  }
+}
+
+function sendReminderNotif(daysSince) {
+  const payload = {
+    title: 'PLAN-50K — Rappel investissement 💰',
+    body: `Ça fait ${daysSince} jour${daysSince > 1 ? 's' : ''} sans versement. Pense à investir ce mois !`,
+    icon: 'icon-512.png',
+    badge: 'icon-512.png',
+    tag: 'weekly-reminder',
+    requireInteraction: true,
+    actions: [{ action: 'open', title: 'Ouvrir l\'app' }]
+  };
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(sw => {
+      sw.showNotification(payload.title, payload);
+    }).catch(() => {
+      try { new Notification(payload.title, payload); } catch(e) {}
+    });
+  } else {
+    try { new Notification(payload.title, payload); } catch(e) {}
+  }
+}
+
+function checkWeekly() {
+  if (!ls('notif_active', false)) return;
+  if (Notification.permission !== 'granted') return;
+
+  const now = Date.now();
+  const lastInvest   = ls('notif_last_invest', now);
+  const lastReminder = ls('notif_last_reminder', 0);
+  const WEEK = 7 * 24 * 60 * 60 * 1000;
+  const DAY  = 24 * 60 * 60 * 1000;
+
+  const daysSince = Math.floor((now - lastInvest) / DAY);
+  const notReminderToday = (now - lastReminder) > DAY;
+
+  if (daysSince >= 7 && notReminderToday) {
+    lss('notif_last_reminder', now);
+    sendReminderNotif(daysSince);
+  }
+}
+
+function startWeeklyCheck() {
+  // Vérifier toutes les heures
+  clearInterval(window._notifInterval);
+  window._notifInterval = setInterval(checkWeekly, 60 * 60 * 1000);
+  checkWeekly(); // vérif immédiate
+}
+
+function initNotif() {
+  const active = ls('notif_active', false);
+  updateNotifBtn(active);
+  if (active && Notification.permission === 'granted') {
+    startWeeklyCheck();
+  } else if (active && Notification.permission !== 'granted') {
+    // Permission perdue — reset
+    lss('notif_active', false);
+    updateNotifBtn(false);
+  }
+}
+
+// Mettre à jour le timestamp d'investissement à chaque versement
+const _origAddV = typeof addV === 'function' ? addV : null;
+function addV() {
+  if (_origAddV) _origAddV();
+  lss('notif_last_invest', Date.now());
+  lss('notif_last_reminder', 0); // reset reminder
+}
+
 // === PWA / INSTALL ===
 let deferredPrompt = null;
 
@@ -1116,7 +1273,6 @@ function isInStandalone() { return window.matchMedia('(display-mode: standalone)
 
 // === SPLASH SCREEN ===
 window.addEventListener('load', () => {
-  // Register service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   }
@@ -1124,7 +1280,9 @@ window.addEventListener('load', () => {
     const banner = document.getElementById('install-banner');
     if (banner) banner.style.display = 'flex';
   }
-  // Dismiss splash after loading bar completes (~2.8s total)
+  // Init notifications
+  initNotif();
+  // Dismiss splash
   setTimeout(() => {
     const splash = document.getElementById('splash');
     if (splash) {
