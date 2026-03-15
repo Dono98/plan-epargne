@@ -14,12 +14,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="description" content="Mon plan épargne personnel — Objectif 50 000 € en 3 ans">
 
-<!-- PWA Icons (inline SVG encoded as data URI) -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23080d1a'/%3E%3Crect x='16' y='16' width='160' height='160' rx='28' fill='%230f1726'/%3E%3Ctext x='96' y='115' font-size='80' text-anchor='middle'%3E💰%3C/text%3E%3Ctext x='96' y='162' font-size='22' text-anchor='middle' fill='%2300e5a0' font-family='Arial' font-weight='bold'%3E50K%3C/text%3E%3C/svg%3E">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23080d1a'/%3E%3Ctext x='32' y='42' font-size='32' text-anchor='middle'%3E💰%3C/text%3E%3C/svg%3E">
+<!-- Real external manifest -->
+<link rel="manifest" href="manifest.json">
 
-<!-- Inline PWA Manifest -->
-<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Plan%2050K%E2%82%AC%22%2C%22short_name%22%3A%22Plan%2050K%22%2C%22description%22%3A%22Mon%20plan%20%C3%A9pargne%20personnel%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23080d1a%22%2C%22theme_color%22%3A%22%23080d1a%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%2520viewBox%3D'0%25200%2520192%2520192'%253E%253Crect%2520width%3D'192'%2520height%3D'192'%2520rx%3D'40'%2520fill%3D'%2523080d1a'%2F%253E%253Ctext%2520x%3D'96'%2520y%3D'115'%2520font-size%3D'80'%2520text-anchor%3D'middle'%253E%25F0%259F%2592%25B0%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+<!-- Icons -->
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
 <style>
@@ -940,7 +940,6 @@ renderCKL();
 // === PWA / INSTALL ===
 let deferredPrompt = null;
 
-// Android/Chrome — capture install prompt
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
@@ -953,7 +952,6 @@ function installApp() {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then(() => { deferredPrompt = null; closeBanner(); });
   } else {
-    // iOS Safari — show instructions
     document.getElementById('ios-modal').classList.add('open');
   }
 }
@@ -966,11 +964,16 @@ function closeIosModal() {
   document.getElementById('ios-modal').classList.remove('open');
 }
 
-// Show iOS install hint if on iOS Safari and not already installed
 function isIOS() { return /iphone|ipad|ipod/i.test(navigator.userAgent); }
 function isInStandalone() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone; }
 
 window.addEventListener('load', () => {
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => {
+      console.log('SW registered');
+    }).catch(err => console.log('SW error:', err));
+  }
   if (isIOS() && !isInStandalone()) {
     const banner = document.getElementById('install-banner');
     if (banner) banner.style.display = 'flex';
