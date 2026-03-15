@@ -1,8 +1,8 @@
 {
-  "name": "Plan 50K€",
+  "name": "Plan 50K",
   "short_name": "Plan 50K",
-  "description": "Mon plan epargne personnel — Objectif 50 000 euros en 3 ans",
-  "start_url": "https://dono98.github.io/plan-epargne/" 
+  "description": "Mon plan epargne personnel - Objectif 50 000 euros en 3 ans",
+  "start_url": "/plan-epargne/",
   "scope": "/plan-epargne/",
   "display": "standalone",
   "background_color": "#080d1a",
@@ -21,12 +21,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ]
 }
