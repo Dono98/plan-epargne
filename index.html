@@ -170,6 +170,50 @@ body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:600px;height:
   .page-wrap{padding-bottom:calc(var(--nav-h) + 20px + env(safe-area-inset-bottom));}
   .top-header-inner{justify-content:center;}
   .logo{padding:12px 0;}
+
+  /* Fix general grids on mobile */
+  .g2,.g3,.g4{grid-template-columns:1fr !important;}
+
+  /* Fix ETF table on mobile — turn into cards */
+  .etbl{display:block;width:100%;}
+  .etbl thead{display:none;}
+  .etbl tbody{display:flex;flex-direction:column;gap:10px;}
+  .etbl tr{display:flex;flex-direction:column;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;gap:6px;}
+  .etbl td{display:flex;align-items:center;justify-content:space-between;padding:0;border:none;font-size:13px;}
+  .etbl td:first-child{font-size:14px;font-weight:700;}
+  .etbl td::before{content:attr(data-label);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;flex-shrink:0;margin-right:8px;}
+  .etbl td:first-child::before{display:none;}
+
+  /* Fix market cards grid */
+  #mkt-grid{grid-template-columns:1fr !important;}
+
+  /* Fix AI analysis grid */
+  #ai-txt .ai-grid{grid-template-columns:1fr !important;}
+
+  /* Fix action cards */
+  .g2 > div{width:100%;}
+
+  /* Fix projection rows */
+  .prow{flex-direction:column;align-items:flex-start;gap:6px;}
+  .plbl{width:100% !important;display:flex;justify-content:space-between;}
+  .ptrack{width:100% !important;}
+
+  /* Smaller page title on mobile */
+  .page-title{font-size:26px !important;}
+
+  /* Fix donut layout */
+  .donut{width:120px !important;height:120px !important;}
+  .donut::after{width:68px !important;height:68px !important;}
+
+  /* Prevent horizontal overflow globally */
+  .card{overflow:hidden;}
+  .tab-page{overflow-x:hidden;}
+
+  /* Fix header in tab 4 market section */
+  #mkt-grid .mc{width:100%;min-width:0;}
+
+  /* Fix refresh button wrapping */
+  #refresh-btn{font-size:11px;padding:8px 14px;}
 }
 @media(min-width:641px){
   .mob-nav{display:none;}
@@ -545,24 +589,52 @@ label.fl{display:block;font-size:10px;color:var(--muted);text-transform:uppercas
   <div class="card mb">
     <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;"><span class="chip cg" style="font-size:11px;padding:3px 10px;">80% ETF</span><span style="color:var(--muted);font-size:11px;">560 €/mois</span></div>
     <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px;">Socle du portefeuille</div>
-    <table class="etbl">
-      <thead><tr><th>ETF</th><th>Ticker</th><th>Description</th><th>Part</th><th>Montant</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Amundi MSCI World</strong></td><td><span class="tkr">CW8</span></td><td style="color:var(--muted);font-size:11px;">1 600+ entreprises mondiales</td><td><div style="background:var(--surface2);border-radius:100px;height:4px;width:70px;overflow:hidden;margin-bottom:2px;"><div style="width:57%;height:100%;background:var(--green);border-radius:100px;"></div></div><div style="font-size:9px;color:var(--muted);">40% PEA</div></td><td><span class="ap">280 €</span></td></tr>
-        <tr><td><strong>Amundi S&P 500</strong></td><td><span class="tkr">500</span></td><td style="color:var(--muted);font-size:11px;">500 plus grandes entreprises US</td><td><div style="background:var(--surface2);border-radius:100px;height:4px;width:70px;overflow:hidden;margin-bottom:2px;"><div style="width:36%;height:100%;background:var(--blue);border-radius:100px;"></div></div><div style="font-size:9px;color:var(--muted);">25% PEA</div></td><td><span class="ap" style="background:rgba(79,163,255,0.1);color:var(--blue);">175 €</span></td></tr>
-        <tr><td><strong>Amundi MSCI Europe</strong></td><td><span class="tkr">AEEM</span></td><td style="color:var(--muted);font-size:11px;">Grandes caps européennes</td><td><div style="background:var(--surface2);border-radius:100px;height:4px;width:70px;overflow:hidden;margin-bottom:2px;"><div style="width:21%;height:100%;background:var(--purple);border-radius:100px;"></div></div><div style="font-size:9px;color:var(--muted);">15% PEA</div></td><td><span class="ap" style="background:rgba(167,139,250,0.1);color:var(--purple);">105 €</span></td></tr>
-      </tbody>
-    </table>
+    <!-- ETF Cards (mobile-friendly, no table) -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="background:var(--surface2);border:1px solid rgba(0,229,160,0.2);border-radius:12px;padding:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div><div style="font-weight:700;font-size:14px;">Amundi MSCI World</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">1 600+ entreprises mondiales</div></div>
+          <span class="ap">280 €</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="tkr">CW8</span>
+          <div style="flex:1;background:var(--surface3);border-radius:100px;height:5px;overflow:hidden;"><div style="width:57%;height:100%;background:var(--green);border-radius:100px;"></div></div>
+          <span style="font-size:10px;color:var(--green);font-weight:700;">40%</span>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid rgba(79,163,255,0.2);border-radius:12px;padding:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div><div style="font-weight:700;font-size:14px;">Amundi S&P 500</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">500 plus grandes entreprises US</div></div>
+          <span class="ap" style="background:rgba(79,163,255,0.1);color:var(--blue);">175 €</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="tkr">500</span>
+          <div style="flex:1;background:var(--surface3);border-radius:100px;height:5px;overflow:hidden;"><div style="width:36%;height:100%;background:var(--blue);border-radius:100px;"></div></div>
+          <span style="font-size:10px;color:var(--blue);font-weight:700;">25%</span>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid rgba(167,139,250,0.2);border-radius:12px;padding:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div><div style="font-weight:700;font-size:14px;">Amundi MSCI Europe</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">Grandes caps européennes</div></div>
+          <span class="ap" style="background:rgba(167,139,250,0.1);color:var(--purple);">105 €</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="tkr">AEEM</span>
+          <div style="flex:1;background:var(--surface3);border-radius:100px;height:5px;overflow:hidden;"><div style="width:21%;height:100%;background:var(--purple);border-radius:100px;"></div></div>
+          <span style="font-size:10px;color:var(--purple);font-weight:700;">15%</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="card mb">
     <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;"><span class="chip cy" style="font-size:11px;padding:3px 10px;">20% Actions</span><span style="color:var(--muted);font-size:11px;">140 €/mois · 1 à 2 max</span></div>
     <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px;">Booster de rendement</div>
-    <div class="g2">
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;"><div><div style="font-weight:700;font-size:13px;">LVMH</div><div style="font-size:10px;color:var(--muted);">MC.PA • Luxe</div></div><span class="chip cg">Résilient</span></div><div style="font-size:11px;color:var(--muted2);">Leader mondial du luxe, dividendes stables.</div></div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;"><div><div style="font-weight:700;font-size:13px;">TotalEnergies</div><div style="font-size:10px;color:var(--muted);">TTE.PA • Énergie</div></div><span class="chip cy">Div. ~5%</span></div><div style="font-size:11px;color:var(--muted2);">Dividende élevé et régulier. Transition énergétique.</div></div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;"><div><div style="font-weight:700;font-size:13px;">Schneider Electric</div><div style="font-size:10px;color:var(--muted);">SU.PA • Industrie</div></div><span class="chip cb">Croissance</span></div><div style="font-size:11px;color:var(--muted2);">Transition énergétique, forte croissance.</div></div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;"><div><div style="font-weight:700;font-size:13px;">Air Liquide</div><div style="font-size:10px;color:var(--muted);">AI.PA • Industrie</div></div><span class="chip cp">Très stable</span></div><div style="font-size:11px;color:var(--muted2);">Très fiable long terme. Croissance régulière.</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:700;font-size:13px;">LVMH</div><div style="font-size:10px;color:var(--muted);">MC.PA • Luxe • Dividendes stables</div></div><span class="chip cg">Résilient</span></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:700;font-size:13px;">TotalEnergies</div><div style="font-size:10px;color:var(--muted);">TTE.PA • Énergie • Dividende ~5%</div></div><span class="chip cy">Div. ~5%</span></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:700;font-size:13px;">Schneider Electric</div><div style="font-size:10px;color:var(--muted);">SU.PA • Industrie • Transition énergétique</div></div><span class="chip cb">Croissance</span></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:700;font-size:13px;">Air Liquide</div><div style="font-size:10px;color:var(--muted);">AI.PA • Industrie • Très fiable</div></div><span class="chip cp">Très stable</span></div>
     </div>
   </div>
 
