@@ -610,7 +610,7 @@ label.fl{display:block;font-size:10px;color:var(--muted);text-transform:uppercas
       <div><label class="fl">🟨 LDDS</label><div class="fwrap"><input type="number" id="t-ldds" class="fi" placeholder="100" style="border-color:rgba(245,200,66,0.25);"><span class="suf">€</span></div></div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn bg" onclick="addV()" style="flex:1;min-width:140px;justify-content:center;">✅ Valider le versement</button>
+      <button class="btn bg" onclick="addVersement()" style="flex:1;min-width:140px;justify-content:center;">✅ Valider le versement</button>
       <button class="btn br" onclick="resetT()">🗑️ Réinitialiser</button>
     </div>
     <div class="toast" id="t-toast"></div>
@@ -799,6 +799,7 @@ label.fl{display:block;font-size:10px;color:var(--muted);text-transform:uppercas
       <div class="mc" id="card-LVMH"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div><span style="font-family:'Syne',sans-serif;font-weight:800;font-size:13px;">LVMH</span><span style="font-size:10px;color:var(--muted);margin-left:5px;">MC.PA</span></div><span>👜</span></div><div style="display:flex;align-items:baseline;gap:7px;margin-bottom:4px;"><span id="price-LVMH" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">—</span><span id="change-LVMH" style="font-size:11px;font-weight:700;">—</span></div><div id="signal-LVMH" style="font-size:10px;color:var(--muted);">Cliquer sur Actualiser…</div></div>
       <div class="mc" id="card-TTE"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div><span style="font-family:'Syne',sans-serif;font-weight:800;font-size:13px;">TotalEnergies</span><span style="font-size:10px;color:var(--muted);margin-left:5px;">TTE.PA</span></div><span>⚡</span></div><div style="display:flex;align-items:baseline;gap:7px;margin-bottom:4px;"><span id="price-TTE" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">—</span><span id="change-TTE" style="font-size:11px;font-weight:700;">—</span></div><div id="signal-TTE" style="font-size:10px;color:var(--muted);">Cliquer sur Actualiser…</div></div>
       <div class="mc" id="card-SU"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div><span style="font-family:'Syne',sans-serif;font-weight:800;font-size:13px;">Schneider</span><span style="font-size:10px;color:var(--muted);margin-left:5px;">SU.PA</span></div><span>⚙️</span></div><div style="display:flex;align-items:baseline;gap:7px;margin-bottom:4px;"><span id="price-SU" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">—</span><span id="change-SU" style="font-size:11px;font-weight:700;">—</span></div><div id="signal-SU" style="font-size:10px;color:var(--muted);">Cliquer sur Actualiser…</div></div>
+      <div class="mc" id="card-AI"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div><span style="font-family:'Syne',sans-serif;font-weight:800;font-size:13px;">Air Liquide</span><span style="font-size:10px;color:var(--muted);margin-left:5px;">AI.PA</span></div><span>💧</span></div><div style="display:flex;align-items:baseline;gap:7px;margin-bottom:4px;"><span id="price-AI" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">—</span><span id="change-AI" style="font-size:11px;font-weight:700;">—</span></div><div id="signal-AI" style="font-size:10px;color:var(--muted);">Cliquer sur Actualiser…</div></div>
     </div>
     <div id="mkt-loader" style="display:none;text-align:center;padding:20px;"><div style="font-size:22px;animation:spin 0.8s linear infinite;display:inline-block;">⟳</div><div id="loader-txt" style="color:var(--muted);font-size:12px;margin-top:7px;"></div></div>
   </div>
@@ -913,9 +914,15 @@ function renderC(){
   charges.forEach(c=>{
     const d=document.createElement('div');
     d.className='ci';
-    d.innerHTML=`<span class="ce">${c.emoji}</span><input class="cn" value="${c.name}" onchange="updC(${c.id},'name',this.value)" placeholder="Charge"><input class="ca" type="number" value="${c.amount}" onchange="updC(${c.id},'amount',parseFloat(this.value)||0)" min="0"><span style="font-size:11px;color:var(--muted);flex-shrink:0;">€</span><button class="cd" onclick="delC(${c.id})">✕</button>`;
+    d.setAttribute('data-id', c.id);
+    d.innerHTML=`<span class="ce">${c.emoji}</span><input class="cn" value="${c.name}" onchange="updC(${c.id},'name',this.value)" placeholder="Charge"><input class="ca" type="number" value="${c.amount}" onchange="updC(${c.id},'amount',parseFloat(this.value)||0)" min="0"><span style="font-size:11px;color:var(--muted);flex-shrink:0;">€</span><button class="cd" data-del="${c.id}" type="button">✕</button>`;
     l.appendChild(d);
   });
+  // Event delegation for delete buttons — fixes mobile tap issues
+  l.onclick = function(e) {
+    const btn = e.target.closest('[data-del]');
+    if (btn) { delC(parseInt(btn.getAttribute('data-del'))); }
+  };
   recalc();
 }
 function updC(id,f,v){const c=charges.find(x=>x.id===id);if(c){c[f]=v;saveC();recalc();}}
@@ -951,7 +958,7 @@ const GOALS={pea:25200,la:4000,ldds:3600,total:50000};
 let ts=ls('epargne_tracker',{pea:0,la:0,ldds:0,nb:0,history:[]});
 
 function savets(){lss('epargne_tracker',ts);}
-function addV(){
+function addVersement(){
   const p=parseFloat(document.getElementById('t-pea').value)||0;
   const l=parseFloat(document.getElementById('t-la').value)||0;
   const d=parseFloat(document.getElementById('t-ldds').value)||0;
@@ -960,11 +967,13 @@ function addV(){
   const now=new Date();
   ts.history.unshift({date:now.toLocaleDateString('fr-FR',{month:'long',year:'numeric'}),pea:p,la:l,ldds:d,total:p+l+d,id:Date.now()});
   savets();updT();
-  ['t-pea','t-la','t-ldds'].forEach(id=>document.getElementById(id).value='');
+  ['t-pea','t-la','t-ldds'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  lss('notif_last_invest',Date.now());
+  lss('notif_last_reminder',0);
   showTt(`✅ Versement de ${fmt(p+l+d)} enregistré — mois ${ts.nb} !`,'var(--green)');
 }
 function resetT(){if(!confirm('Réinitialiser ?'))return;ts={pea:0,la:0,ldds:0,nb:0,history:[]};savets();updT();showTt('🗑️ Tracker réinitialisé.','var(--red)');}
-function showTt(msg,col){const t=document.getElementById('t-toast');t.textContent=msg;t.style.color=col;t.style.borderColor=col;t.style.background=col.includes('green')?'rgba(0,229,160,0.07)':col.includes('blue')?'rgba(79,163,255,0.07)':col.includes('yellow')?'rgba(245,200,66,0.07)':'rgba(255,107,107,0.07)';t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
+function showTt(msg,col){const t=document.getElementById('t-toast');if(!t)return;t.textContent=msg;t.style.color=col;t.style.borderColor=col;t.style.background=col.includes('green')?'rgba(0,229,160,0.07)':col.includes('blue')?'rgba(79,163,255,0.07)':col.includes('yellow')?'rgba(245,200,66,0.07)':'rgba(255,107,107,0.07)';t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
 
 function updT(){
   const tot=ts.pea+ts.la+ts.ldds;
@@ -1005,32 +1014,94 @@ function renderH(){
 
 // === TAB 4 — MARCHÉS ===
 const ASSETS=[
-  {id:'CW8',symbol:'CW8.PA',type:'etf',weight:40},
-  {id:'SP500',symbol:'AUST.PA',type:'etf',weight:25},
-  {id:'EUR',symbol:'AEEM.PA',type:'etf',weight:15},
-  {id:'LVMH',symbol:'MC.PA',type:'action',weight:10},
-  {id:'TTE',symbol:'TTE.PA',type:'action',weight:5},
-  {id:'SU',symbol:'SU.PA',type:'action',weight:5},
+  {id:'CW8',  symbol:'CW8.PA',  type:'etf',   weight:35},
+  {id:'SP500',symbol:'500.PA',  type:'etf',   weight:25},
+  {id:'EUR',  symbol:'AEEM.PA', type:'etf',   weight:15},
+  {id:'LVMH', symbol:'MC.PA',   type:'action',weight:8},
+  {id:'TTE',  symbol:'TTE.PA',  type:'action',weight:7},
+  {id:'SU',   symbol:'SU.PA',   type:'action',weight:5},
+  {id:'AI',   symbol:'AI.PA',   type:'action',weight:5},
 ];
-async function fetchQ(sym){
+
+// Source 1 — Yahoo Finance via allorigins
+async function fetchYahoo(sym){
   const url=`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=5d`;
-  const res=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-  const d=await res.json();const m=JSON.parse(d.contents).chart.result[0].meta;
-  return{price:m.regularMarketPrice,change:((m.regularMarketPrice-(m.chartPreviousClose||m.previousClose))/(m.chartPreviousClose||m.previousClose))*100,currency:m.currency};
+  const res=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(8000)});
+  const d=await res.json();
+  const m=JSON.parse(d.contents).chart.result[0].meta;
+  const price=m.regularMarketPrice;
+  const prev=m.chartPreviousClose||m.previousClose;
+  return{price,change:((price-prev)/prev)*100,currency:m.currency};
 }
+
+// Source 2 — Yahoo Finance via corsproxy.io
+async function fetchYahoo2(sym){
+  const url=`https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=5d`;
+  const res=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(8000)});
+  const d=await res.json();
+  const m=d.chart.result[0].meta;
+  const price=m.regularMarketPrice;
+  const prev=m.chartPreviousClose||m.previousClose;
+  return{price,change:((price-prev)/prev)*100,currency:m.currency};
+}
+
+// Source 3 — stooq.com (autre source de données)
+async function fetchStooq(sym){
+  // stooq uses different symbol format: MC.PA -> mc.pl
+  const s=sym.replace('.PA','.fr').replace('.pa','.fr').toLowerCase();
+  const url=`https://stooq.com/q/l/?s=${s}&f=sd2t2ohlcv&h&e=json`;
+  const res=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(8000)});
+  const d=await res.json();
+  const parsed=JSON.parse(d.contents);
+  const sym2=Object.keys(parsed.symbols)[0];
+  const q=parsed.symbols[sym2];
+  const price=parseFloat(q.Close);
+  const open=parseFloat(q.Open);
+  return{price,change:((price-open)/open)*100,currency:'EUR'};
+}
+
+// Fetch avec fallback automatique sur 3 sources
+async function fetchQ(sym){
+  const errors=[];
+  for(const fn of [fetchYahoo, fetchYahoo2, fetchStooq]){
+    try{
+      const r=await fn(sym);
+      if(r && r.price && !isNaN(r.price)) return r;
+    }catch(e){ errors.push(e.message); }
+  }
+  throw new Error('Toutes sources échouées: '+errors.join(' | '));
+}
+
 async function fetchMarket(){
-  const btn=document.getElementById('refresh-btn');const ldr=document.getElementById('mkt-loader');const ac=document.getElementById('ai-card');
-  btn.disabled=true;btn.style.opacity='0.6';document.getElementById('ri').style.animation='spin 0.8s linear infinite';
+  const btn=document.getElementById('refresh-btn');
+  const ldr=document.getElementById('mkt-loader');
+  const ac=document.getElementById('ai-card');
+  btn.disabled=true;btn.style.opacity='0.6';
+  document.getElementById('ri').style.animation='spin 0.8s linear infinite';
   ldr.style.display='block';ac.style.display='none';
   ASSETS.forEach(a=>{const c=document.getElementById('card-'+a.id);if(c)c.classList.add('loading');});
   const res={};
   for(const a of ASSETS){
     document.getElementById('loader-txt').textContent='Récupération : '+a.id+'...';
-    try{const q=await fetchQ(a.symbol);res[a.id]={...a,...q,ok:true};renderMC(a.id,q.price,q.change,q.currency);}
-    catch(e){res[a.id]={...a,ok:false};const c=document.getElementById('card-'+a.id);if(c)c.classList.remove('loading');const p=document.getElementById('price-'+a.id);if(p)p.textContent='—';const s=document.getElementById('signal-'+a.id);if(s){s.textContent='⚠️ Données indisponibles';s.style.color='var(--muted)';}}
+    try{
+      const q=await fetchQ(a.symbol);
+      res[a.id]={...a,...q,ok:true};
+      renderMC(a.id,q.price,q.change,q.currency);
+    }catch(e){
+      res[a.id]={...a,ok:false};
+      const c=document.getElementById('card-'+a.id);if(c)c.classList.remove('loading');
+      const p=document.getElementById('price-'+a.id);if(p)p.textContent='—';
+      const s=document.getElementById('signal-'+a.id);
+      if(s){s.textContent='⚠️ Indisponible (marché fermé ?)';s.style.color='var(--muted)';}
+    }
   }
-  ldr.style.display='none';btn.disabled=false;btn.style.opacity='1';document.getElementById('ri').style.animation='';
-  const now=new Date();document.getElementById('last-upd').style.display='block';document.getElementById('upd-time').textContent=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' — '+now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  ldr.style.display='none';btn.disabled=false;btn.style.opacity='1';
+  document.getElementById('ri').style.animation='';
+  const now=new Date();
+  document.getElementById('last-upd').style.display='block';
+  document.getElementById('upd-time').textContent=
+    now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+
+    ' — '+now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
   if(Object.values(res).some(r=>r.ok))genAI(res);
 }
 function renderMC(id,price,change,cur){
@@ -1231,14 +1302,6 @@ function initNotif() {
     lss('notif_active', false);
     updateNotifBtn(false);
   }
-}
-
-// Mettre à jour le timestamp d'investissement à chaque versement
-const _origAddV = typeof addV === 'function' ? addV : null;
-function addV() {
-  if (_origAddV) _origAddV();
-  lss('notif_last_invest', Date.now());
-  lss('notif_last_reminder', 0); // reset reminder
 }
 
 // === PWA / INSTALL ===
