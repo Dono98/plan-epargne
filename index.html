@@ -939,7 +939,7 @@ function renderC(){
       <span class="ce">${c.emoji}</span>
       <input class="cn" value="${c.name}" onchange="updC(${c.id},'name',this.value)" placeholder="Charge">
       <input class="ca" type="number" value="${c.amount}" onchange="updC(${c.id},'amount',parseFloat(this.value)||0)" min="0" style="width:65px;">
-      <button class="cd" data-del="${c.id}" type="button">✕</button>`;
+      <button data-del="${c.id}" type="button" style="flex-shrink:0;width:34px;height:34px;min-width:34px;min-height:34px;background:rgba(255,107,107,0.15);border:1px solid rgba(255,107,107,0.5);border-radius:8px;color:#ff6b6b;font-size:18px;font-weight:900;font-family:Arial,Helvetica,sans-serif;line-height:34px;text-align:center;cursor:pointer;padding:0;-webkit-appearance:none;touch-action:manipulation;">X</button>`;
     l.appendChild(d);
   });
   // Event delegation for delete buttons — fixes mobile tap issues
